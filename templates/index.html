@@ -1,0 +1,117 @@
+<html>
+<head>
+	<title>Login & Registration</title>
+    <meta charset='utf-8'>
+    <link rel=stylesheet href=https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css integrity=sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO crossorigin=anonymous>
+	<link rel='stylesheet' type='text/css' href='{{ url_for('static', filename='stylesheet.css') }}'>
+	<script type='text/javascript' src='{{ url_for('static', filename='main.js') }}'></script>
+</head>
+<body>
+    <h1 class="col-11 ml-auto">Login and Registration</h1>
+    <div class="row">
+        <div class="col-5 bg-light p-5 ml-auto">
+            <h2 class="pb-4">Register here!</h2>
+
+            <form action='/reg_validate' method="POST">
+                        <div class="form-group">
+                            <label for="first_name">First name:</label>
+
+                            {% with error = get_flashed_messages(with_categories=True, category_filter=['badFirstName']) %}
+                            {% if error %}
+                            <div class="alert small mb-0 alert-danger">
+                                Your<strong> first name</strong> must contain at least two letters and contain only letters
+                            </div>
+                            {% endif %}
+                            {% endwith %}
+                            
+                            <input type="text" class="form-control" name="first_name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="last_name">Last name:</label>
+                            {% with error = get_flashed_messages(with_categories=True, category_filter=['badLastName']) %}
+                            {% if error %}
+                            <div class="alert small mb-0 alert-danger">
+                                Your<strong> last name</strong> must contain at least two letters and contain only letters
+                            </div>
+                            {% endif %}
+                            {% endwith %}
+                            <input type="text" class="form-control" name="last_name">
+                        </div> 
+
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+
+                            {% with error = get_flashed_messages(with_categories=True, category_filter=['badEmail']) %}
+                            {% if error %}
+                            <div class="alert small mb-0 alert-danger">
+                                Your<strong> email address</strong> is invalid
+                            </div>
+                            {% endif %}
+                            {% endwith %}
+
+                            {% with error = get_flashed_messages(with_categories=True, category_filter=['dupeEmail']) %}
+                            {% if error %}
+                            <div class="alert small mb-0 alert-danger">
+                                Your<strong> email address</strong> already exists!
+                            </div>
+                            {% endif %}
+                            {% endwith %}
+
+                            <input type="text" class="form-control" name="email">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Password:</label>
+                            {% with error = get_flashed_messages(with_categories=True, category_filter=['badPW']) %}
+                            {% if error %}
+                            <div class="alert small mb-0 alert-danger">
+                                Your<strong> password</strong> must contain a number, a capital letter, and be between 8-15 characters
+                            </div>
+                            {% endif %}
+                            {% endwith %}
+                            <input type="password" class="form-control" name="password">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pwconfirm">Confirm password:</label>
+                            {% with error = get_flashed_messages(with_categories=True, category_filter=['badConfirm']) %}
+                            {% if error %}
+                            <div class="alert small mb-0 alert-danger">
+                                Your<strong> password confirmation</strong> must match
+                            </div>
+                            {% endif %}
+                            {% endwith %}
+                            <input type="password" class="form-control" name="pwconfirm">
+                        </div>
+
+                        <input type="submit" class="form-control ml-auto col-3 bg-transparent border-success text-success" value="Register"> 
+            </form>
+        </div>
+        <div class="col-5 bg-light p-5 pt-3 mr-auto">
+            <h2 class="pb-4">Login here!</h2>
+            {% with error = get_flashed_messages(with_categories=True, category_filter=['badLogin']) %}
+            {% if error %}
+            <div class="alert small alert-danger">
+                Your<strong> email/password combination</strong> is not in our database
+            </div>
+            {% endif %}
+            {% endwith %}
+
+ 
+            <form action='/log_validate' method='POST'>
+                <div class="form-group">
+                    <label for="first_name">Email:</label>
+                    <input type="text" class="form-control" name="email">
+                </div>
+                <div class="form-group">
+                    <label for="first_name">Password:</label>
+                    <input type="password" class="form-control" name="password">
+                </div>
+                <input type="submit" class="form-control ml-auto col-3 bg-transparent border-success text-success" value="Log in"> 
+            </form>
+            
+        </div>
+    </div>
+</body>
+</html>
