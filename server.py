@@ -21,9 +21,12 @@ def index():
         session['userinfo'] = False
         session['mails'] = False
         session['friends'] = False
+        
     if session['id']:
-        print(session['id'])
-        return redirect('/admin')
+        if session['userinfo']['user_level'] == 9:
+            return redirect('/admin')
+        else:
+            return redirect('/user')
     return render_template('index.html', logID=session['id'], info=session['userinfo'])
 
 @app.route('/reg_validate', methods=['POST'])
@@ -64,6 +67,10 @@ def regValidate():
             insertQuery = "INSERT INTO users (first_name, last_name, email, password, user_level, created_at, updated_at) VALUES(%(first_name)s, %(last_name)s, %(email)s, %(password_hash)s, %(user_level)s, NOW(), NOW());"
             userid = mysql.query_db(insertQuery,data)
             session['id'] = userid
+            session['userinfo']['first_name'] = data['first_name']
+            session['userinfo']['last_name'] = data['last_name']
+            session['userinfo']['email'] = data['email']
+            session['userinfo']['user_level'] = data['user_level']
             
             
     return redirect('/')
@@ -72,14 +79,18 @@ def regValidate():
 def logValidate():
     print(request.form)
     data = {'email' : request.form['email']}
-    findMatchQuery = "SELECT id, first_name, last_name ,email, password FROM users WHERE email = %(email)s;"
+    findMatchQuery = "SELECT id, first_name, last_name ,email, password, user_level FROM users WHERE email = %(email)s;"
     user = mysql.query_db(findMatchQuery, data)
     
     if user and bcrypt.check_password_hash(user[0]['password'], request.form['password']):
         flash(u"","logSuccess")
         print(user)
         session['id'] = user[0]['id']
-        session['userinfo']={ 'first_name': user[0]['first_name'], 'last_name': user[0]['last_name'], 'email': user[0]['email']}
+        session['userinfo']={ 'first_name': user[0]['first_name'],
+                            'last_name': user[0]['last_name'],
+                            'email': user[0]['email'], 
+                            'user_level': user[0]['user_level']
+                            }
         print(session)
         return redirect('/')
     else:
@@ -88,12 +99,19 @@ def logValidate():
 
 @app.route('/admin')
 def renderAdmin():
-    userList = mysql.query_db("SELECT id, CONCAT(first_name,' ', last_name) AS name, email, user_level FROM users; ")
-    return render_template('admin.html', userList=userList)
+    if session['id']:
+        if session['userinfo']['user_level'] == 9:
+            userList = mysql.query_db("SELECT id, CONCAT(first_name,' ', last_name) AS name, email, user_level FROM users; ")
+            return render_template('admin.html', userList=userList)
+        else:
+            return redirect('/user')
+    return redirect('/')
 
 @app.route('/remove_user', methods=['POST'])
 def removeUser():
-    print("REMOVIN USER")
+    print(request.form)
+    deleteQuery = "DELETE FROM users WHERE id = %(id)s"
+    mysql.query_db(deleteQuery, request.form)
     return redirect('/admin')
 
 @app.route('/change_access', methods=['POST'])
@@ -111,6 +129,12 @@ def changeAccess():
     mysql.query_db(updateQuery, data)
 
     return redirect('/admin')
+
+@app.route('/user')
+def renderUser():
+    if session['id']:
+        return render_template('user.html')
+    return redirect('/')
 
 @app.route('/logout', methods=['POST'])
 def logout():

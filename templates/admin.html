@@ -28,6 +28,7 @@
         </div>
     </nav>
     <h2>Manage Users</h2>
+
     <div class="table-responsive">
         <table class="table table-striped table-condensed">
             <thead>
@@ -49,11 +50,12 @@
                     <td>{{ user.email }}</td>
                     <td>{{ user.user_level}}</td>
                     <td class="row">
-                        <form class=" form-inline col-3" action="/remove_user" method="POST">
-                        <input type="submit" class="form-control mx-auto  bg-transparent border-danger text-danger" value="Remove"> 
+                        <form class=" form col-6" action="/remove_user" method="POST">
+                        <input type="hidden" name="id" value="{{ user.id }}">
+                        <input type="submit" class="form-control mx-auto bg-transparent border-danger text-danger" value="Banish to the Shadow Realm"> 
                         </form>
 
-                        <form class=" form-inline col-5" action="/change_access" method="POST">
+                        <form class=" form col-5" action="/change_access" method="POST">
                         <input type="hidden" name="id" value="{{ user.id }}">
                         <input type="hidden" name="user_level" value="{{ user.user_level }}">
                         {% if user.user_level == 9 %}
