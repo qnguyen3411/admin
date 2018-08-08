@@ -7,7 +7,7 @@ app = Flask(__name__)
 app.secret_key = "Secret"
 
 bcrypt = Bcrypt(app)
-mysql = connectToMySQL('logreg')
+mysql = connectToMySQL('advancedlog')
 
 EMAIL_REGEX =re.compile(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$')
 PW_REGEX1=re.compile(r'^.{8,15}$')
@@ -22,7 +22,8 @@ def index():
         session['mails'] = False
         session['friends'] = False
     if session['id']:
-        return redirect('/wall')
+        print(session['id'])
+        return redirect('/admin')
     return render_template('index.html', logID=session['id'], info=session['userinfo'])
 
 @app.route('/reg_validate', methods=['POST'])
@@ -57,12 +58,14 @@ def regValidate():
             data = { "first_name" : request.form['first_name'],
                     "last_name" : request.form['last_name'],
                     "email"     : request.form['email'],
+                    "user_level" : 1,
                     "password_hash": pw_hash
             }
-            insertQuery = "INSERT INTO users (first_name, last_name, email, password) VALUES(%(first_name)s, %(last_name)s, %(email)s, %(password_hash)s);"
+            insertQuery = "INSERT INTO users (first_name, last_name, email, password, user_level, created_at, updated_at) VALUES(%(first_name)s, %(last_name)s, %(email)s, %(password_hash)s, %(user_level)s, NOW(), NOW());"
             userid = mysql.query_db(insertQuery,data)
             session['id'] = userid
-            return redirect('/wall')
+            
+            
     return redirect('/')
 
 @app.route('/log_validate', methods=['POST'])
@@ -78,10 +81,40 @@ def logValidate():
         session['id'] = user[0]['id']
         session['userinfo']={ 'first_name': user[0]['first_name'], 'last_name': user[0]['last_name'], 'email': user[0]['email']}
         print(session)
-        return redirect('/wall')
+        return redirect('/')
     else:
         flash(u"Wrong email/password combination","badLogin")
         return redirect('/')
 
+@app.route('/admin')
+def renderAdmin():
+    userList = mysql.query_db("SELECT id, CONCAT(first_name,' ', last_name) AS name, email, user_level FROM users; ")
+    return render_template('admin.html', userList=userList)
+
+@app.route('/remove_user', methods=['POST'])
+def removeUser():
+    print("REMOVIN USER")
+    return redirect('/admin')
+
+@app.route('/change_access', methods=['POST'])
+def changeAccess():
+    print(request.form['id'])
+    if request.form['user_level'] == '1':
+        updated_user_level = 9
+    else:
+        updated_user_level = 1
+    data = {
+        'id' : request.form['id'],
+        'user_level': updated_user_level
+    } 
+    updateQuery = "UPDATE users SET user_level = %(user_level)s WHERE id = %(id)s"
+    mysql.query_db(updateQuery, data)
+
+    return redirect('/admin')
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return redirect('/')
 if __name__ == '__main__':
 	app.run(debug=True)
